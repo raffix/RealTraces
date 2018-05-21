@@ -77,13 +77,14 @@ export default class App extends React.Component {
           position => {
             var locations = this.state.locationsArray.locations;
             locations.push(position);
-
+            this.logs(locations);
             this.setState({
               locations: locations
             });
 
             position = this.state.locationsArray.locations.lenght;
-            console.log(position)
+            this.logs(position);
+
             this.setState({ ultima: position });
           },
           error => this.setState({ error: error.message }),
