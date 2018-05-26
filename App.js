@@ -83,23 +83,28 @@ export default class App extends React.Component {
   {
     let timer = this.state.tempo;
     if (this.state.coletar == 1) {
-      setTimeout(function(){
+      setTimeout(() => {
         navigator.geolocation.getCurrentPosition(
-           function(position){
-            console.log(position);
-            console.log(this.state);
+           (position) =>
+           {
             let locations = this.state.locationsArray.locations;
             locations.push(position);
-            this.logs(locations);
             this.setState({
               locations: locations
             });
             position = this.state.locationsArray.locations.lenght;
-            this.logs(position);
             this.setState({ ultima: position });
+            this.logs("Posição lida");
           },
-          function(error){console.log(error)},
-          { enableHighAccuracy: true, timeout: 8000, maximumAge: 1000 }
+          (error) =>
+          {
+            console.log(error);
+          },
+          {
+            enableHighAccuracy: true,
+            timeout: 8000,
+            maximumAge: 1000
+          }
         );
         this.coletar();
       }, timer);
@@ -119,7 +124,8 @@ export default class App extends React.Component {
   _saveLocationStorage = async locations => {
     try {
       await AsyncStorage.setItem(STORAGE_KEY, locations);
-      this.logs("Saved selection to disk: " + locations);
+      console.log(locations);
+      this.logs("Saved selection to disk: " + locations.length);
     } catch (error) {
       this.logs("AsyncStorage error: " + error.message);
     }
