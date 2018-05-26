@@ -47,7 +47,7 @@ export default class App extends React.Component {
               locations: JSON.parse(value)
             }
           });
-          this.logs("Recovered selection from disk: " + value);
+          //this.logs("Recovered selection from disk: " + value);
 
         }
       });
@@ -87,14 +87,21 @@ export default class App extends React.Component {
         navigator.geolocation.getCurrentPosition(
            (position) =>
            {
+             console.log(position);
             let locations = this.state.locationsArray.locations;
+            console.log("Push");
             locations.push(position);
+            console.log(locations);
+            console.log("Ultima");
+
+            console.log("Adicionando");
             this.setState({
               locations: locations
             });
             position = this.state.locationsArray.locations.length;
+            console.log(position);
             this.setState({ ultima: position });
-            this.logs("Posição lida : " + position);
+            this.logs("Posição lida");
           },
           (error) =>
           {
@@ -137,7 +144,8 @@ export default class App extends React.Component {
   enviar()
   {
     this.loadData();
-    var value = this.state.locationsArray;
+    let value = this.state.locationsArray;
+    console.log(value);
     if (value.length > 0) {
       this.logs("Dados a enviar");
       return this.send(value);
