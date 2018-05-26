@@ -14,15 +14,16 @@ import {
   View
 } from "react-native";
 
-var STORAGE_KEY = "@MySuperStore:key";
+var STORAGE_KEY = "RealTracesKeys";
 
 export default class App extends React.Component {
-  constructor(props) {
+  constructor(props)
+  {
     super(props);
     this.state = {
       coletar: 0,
       status: "inativo",
-      intervalo: 5,
+      intervalo: 10,
       tempo: 1000,
       locationsArray: {
         locations: []
@@ -32,34 +33,43 @@ export default class App extends React.Component {
     };
   }
 
-  loadData() {
+  loadData()
+  {
     if (this.state.locationsArray.lenght > 0) {
       return true;
     }
     try {
-      var value = AsyncStorage.getItem(STORAGE_KEY);
-      if (value !== null) {
-        this.setState({
-          locationsArray: {
-            locations: JSON.parse(value)
-          }
-        });
-        this.logs("Recovered selection from disk: " + value);
-      }
+      var value = AsyncStorage.getItem(STORAGE_KEY).then(function(){
+        console.log(value);
+        if (!(value instanceof Promise)) {
+          this.setState({
+            locationsArray: {
+              locations: JSON.parse(value)
+            }
+          });
+          this.logs("Recovered selection from disk: " + value);
+
+        }
+      });
     } catch (error) {
       this.logs("AsyncStorage error: " + error.message);
     }
   }
 
   //Coleta
-  atualizaTempo() {
+  atualizaTempo()
+  {
     let valor = this.state.intervalo * 1000;
     this.setState({ tempo: valor });
+    console.log(valor);
   }
 
-  inicializa() {
+  inicializa()
+  {
     this.setState({ coletar: 1 });
+    console.log("atualizaTempo");
     this.atualizaTempo();
+    console.log("loadData");
     this.loadData();
 
     setTimeout(() => {
@@ -69,33 +79,35 @@ export default class App extends React.Component {
     }, 1000);
   }
 
-  coletar() {
+  coletar()
+  {
     let timer = this.state.tempo;
     if (this.state.coletar == 1) {
-      setTimeout(() => {
+      setTimeout(function(){
         navigator.geolocation.getCurrentPosition(
-          position => {
-            var locations = this.state.locationsArray.locations;
+           function(position){
+            console.log(position);
+            console.log(this.state);
+            let locations = this.state.locationsArray.locations;
             locations.push(position);
             this.logs(locations);
             this.setState({
               locations: locations
             });
-
             position = this.state.locationsArray.locations.lenght;
             this.logs(position);
-
             this.setState({ ultima: position });
           },
-          error => this.setState({ error: error.message }),
-          { enableHighAccuracy: true, timeout: 20000, maximumAge: 1000 }
+          function(error){console.log(error)},
+          { enableHighAccuracy: true, timeout: 8000, maximumAge: 1000 }
         );
         this.coletar();
       }, timer);
     }
   }
 
-  finaliza() {
+  finaliza()
+  {
     this.setState({ coletar: 0 });
     this.setState({ status: "inativa" });
     this._saveLocationStorage(
@@ -114,7 +126,8 @@ export default class App extends React.Component {
   };
 
   //Envio
-  enviar() {
+  enviar()
+  {
     this.loadData();
     var value = this.state.locationsArray;
     if (value.lenght > 0) {
@@ -125,7 +138,8 @@ export default class App extends React.Component {
     return false;
   }
 
-  send(dados) {
+  send(dados)
+  {
     var host = this.state.host;
     return fetch(host, {
       method: "POST",
@@ -140,11 +154,13 @@ export default class App extends React.Component {
   }
 
   //Toast
-  toast(val) {
+  toast(val)
+  {
     ToastAndroid.show(val + " segundos", ToastAndroid.SHORT);
   }
 
-  logs(mensagem) {
+  logs(mensagem)
+  {
     ToastAndroid.show(mensagem, ToastAndroid.SHORT);
     console.log(mensagem);
   }
@@ -160,7 +176,7 @@ export default class App extends React.Component {
           <Slider
             style={{ width: 300 }}
             step={1}
-            minimumValue={5}
+            minimumValue={7}
             maximumValue={40}
             value={this.state.intervalo}
             onValueChange={val => this.setState({ intervalo: val })}
