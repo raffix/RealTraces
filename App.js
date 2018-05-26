@@ -35,7 +35,7 @@ export default class App extends React.Component {
 
   loadData()
   {
-    if (this.state.locationsArray.lenght > 0) {
+    if (this.state.locationsArray.length > 0) {
       return true;
     }
     try {
@@ -92,9 +92,9 @@ export default class App extends React.Component {
             this.setState({
               locations: locations
             });
-            position = this.state.locationsArray.locations.lenght;
+            position = this.state.locationsArray.locations.length;
             this.setState({ ultima: position });
-            this.logs("Posição lida");
+            this.logs("Posição lida : " + position);
           },
           (error) =>
           {
@@ -115,17 +115,19 @@ export default class App extends React.Component {
   {
     this.setState({ coletar: 0 });
     this.setState({ status: "inativa" });
+    this.logs("Coleta encerrada");
+    this.logs("Posições coletadas : " + this.state.locationsArray.locations.length);
     this._saveLocationStorage(
       JSON.stringify(this.state.locationsArray.locations)
     );
-    this.logs("Coleta encerrada");
+
   }
 
   _saveLocationStorage = async locations => {
     try {
       await AsyncStorage.setItem(STORAGE_KEY, locations);
       console.log(locations);
-      this.logs("Saved selection to disk: " + locations.length);
+      this.logs("Saved selection to disk");
     } catch (error) {
       this.logs("AsyncStorage error: " + error.message);
     }
@@ -136,7 +138,7 @@ export default class App extends React.Component {
   {
     this.loadData();
     var value = this.state.locationsArray;
-    if (value.lenght > 0) {
+    if (value.length > 0) {
       this.logs("Dados a enviar");
       return this.send(value);
     }
