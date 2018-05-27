@@ -14,7 +14,7 @@ import {
   View
 } from "react-native";
 
-var STORAGE_KEY = "RealTracesKeys";
+var STORAGE = "RealTracesKeys";
 
 export default class App extends React.Component {
   constructor(props)
@@ -33,22 +33,19 @@ export default class App extends React.Component {
     };
   }
 
+  // Não funciona
   loadData()
   {
-    if (this.state.locationsArray.length > 0) {
-      return true;
-    }
     try {
-      var value = AsyncStorage.getItem(STORAGE_KEY).then(function(){
-        console.log(value);
+      var value = AsyncStorage.getItem(STORAGE).then(function(){
         if (!(value instanceof Promise)) {
+          console.log("loadData");
+          console.log(value);
           this.setState({
             locationsArray: {
               locations: JSON.parse(value)
             }
           });
-          //this.logs("Recovered selection from disk: " + value);
-
         }
       });
     } catch (error) {
@@ -61,20 +58,17 @@ export default class App extends React.Component {
   {
     let valor = this.state.intervalo * 1000;
     this.setState({ tempo: valor });
-    console.log(valor);
   }
 
   inicializa()
   {
     this.setState({ coletar: 1 });
-    console.log("atualizaTempo");
     this.atualizaTempo();
-    console.log("loadData");
     this.loadData();
 
     setTimeout(() => {
-      this.logs("Coleta iniciada");
-      this.setState({ status: "leitura" });
+      this.logs("Iniciando leitura");
+      this.setState({ status: "Coletando dados" });
       this.coletar();
     }, 1000);
   }
@@ -87,21 +81,15 @@ export default class App extends React.Component {
         navigator.geolocation.getCurrentPosition(
            (position) =>
            {
-             console.log(position);
             let locations = this.state.locationsArray.locations;
-            console.log("Push");
             locations.push(position);
-            console.log(locations);
-            console.log("Ultima");
-
             console.log("Adicionando");
             this.setState({
               locations: locations
             });
             position = this.state.locationsArray.locations.length;
-            console.log(position);
             this.setState({ ultima: position });
-            this.logs("Posição lida");
+            this.logs("Posição coletada");
           },
           (error) =>
           {
@@ -132,9 +120,10 @@ export default class App extends React.Component {
 
   _saveLocationStorage = async locations => {
     try {
-      await AsyncStorage.setItem(STORAGE_KEY, locations);
-      console.log(locations);
-      this.logs("Saved selection to disk");
+      await AsyncStorage.setItem(STORAGE, locations).then(function(){
+        console.log(locations);
+        this.logs("Saved selection to disk");
+      });
     } catch (error) {
       this.logs("AsyncStorage error: " + error.message);
     }
@@ -143,14 +132,23 @@ export default class App extends React.Component {
   //Envio
   enviar()
   {
+    console.log("Enviar");
     this.loadData();
-    let value = this.state.locationsArray;
-    console.log(value);
-    if (value.length > 0) {
-      this.logs("Dados a enviar");
-      return this.send(value);
+    //let value = this.state.locationsArray;
+    try {
+      var value = AsyncStorage.getItem(STORAGE).then(function(){
+        if (!(value instanceof Promise)) {
+          if (value.length > 0) {
+            this.logs("Dados a enviar");
+            return this.send(value);
+          }
+          this.logs("Nenhum dado a enviar");
+        }
+      });
+    } catch (error) {
+      this.logs("AsyncStorage error: " + error.message);
     }
-    this.logs("Nenhum dado a enviar");
+
     return false;
   }
 
@@ -178,7 +176,6 @@ export default class App extends React.Component {
   logs(mensagem)
   {
     ToastAndroid.show(mensagem, ToastAndroid.SHORT);
-    console.log(mensagem);
   }
 
   render() {
@@ -193,11 +190,10 @@ export default class App extends React.Component {
             style={{ width: 300 }}
             step={1}
             minimumValue={7}
-            maximumValue={40}
-            value={this.state.intervalo}
-            onValueChange={val => this.setState({ intervalo: val })}
-            onSlidingComplete={val => this.getVal(val)}
-          />
+            maximumValue={30}
+            value = {this.state.intervalo}
+            onValueChange = {(val) => this.setState({intervalo: val})}
+        />
         </View>
         <View style={styles.buttonContainer}>
           <Button onPress={this.inicializa.bind(this)} title="Iniciar" />
@@ -209,6 +205,8 @@ export default class App extends React.Component {
         </View>
         <View style={styles.textContainer}>
           <Text>Status da leitura: {this.state.status}</Text>
+        </View>
+        <View style={styles.textContainer}>
           <Text>Ultima posição: {this.state.ultima}</Text>
         </View>
         <View style={styles.sendContainer}>
