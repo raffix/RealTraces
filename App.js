@@ -29,7 +29,7 @@ export default class App extends React.Component {
         locations: []
       },
       ultima: "",
-      host: "http://meusite.com.br"
+      host: "http://numericoapp.pe.hu/gps.php"
     };
   }
 
@@ -115,56 +115,50 @@ export default class App extends React.Component {
     this._saveLocationStorage(
       JSON.stringify(this.state.locationsArray.locations)
     );
-
   }
 
   _saveLocationStorage = async locations => {
     try {
-      await AsyncStorage.setItem(STORAGE, locations).then(function(){
-        console.log(locations);
+      await AsyncStorage.setItem(STORAGE, locations).then(() => {
         this.logs("Saved selection to disk");
       });
     } catch (error) {
       this.logs("AsyncStorage error: " + error.message);
+      console.log(error.message);
     }
   };
 
   //Envio
   enviar()
   {
-    console.log("Enviar");
+    this.logs("Dados de memória");
     this.loadData();
-    //let value = this.state.locationsArray;
-    try {
-      var value = AsyncStorage.getItem(STORAGE).then(function(){
-        if (!(value instanceof Promise)) {
-          if (value.length > 0) {
-            this.logs("Dados a enviar");
-            return this.send(value);
-          }
-          this.logs("Nenhum dado a enviar");
-        }
-      });
-    } catch (error) {
-      this.logs("AsyncStorage error: " + error.message);
+    if(this.state.locationsArray.locations.length > 0) {
+      this.logs("Enviando dados");
+      value = this.state.locationsArray;
+      return this.send(value);
     }
-
+    this.logs("Sem dados a enviar");
     return false;
   }
 
   send(dados)
   {
     var host = this.state.host;
-    return fetch(host, {
-      method: "POST",
+    dados = JSON.stringify(dados);
+    console.log(dados);
+    fetch(host, {
+      method: 'POST',
       headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json"
+       'Accept': 'application/json',
+       'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        dados: dados
-      })
+      body: JSON.stringify({data : dados})
+    }).then( response => {
+      console.log(response);
     });
+
+
   }
 
   //Toast
@@ -210,10 +204,6 @@ export default class App extends React.Component {
           <Text>Ultima posição: {this.state.ultima}</Text>
         </View>
         <View style={styles.sendContainer}>
-          <TextInput
-            style={{ height: 40 }}
-            onChangeText={text => this.setState({ host: text })}
-          />
           <Button
             onPress={this.enviar.bind(this)}
             title="Enviar"
