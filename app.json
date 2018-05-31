@@ -1,5 +1,13 @@
 {
   "expo": {
-    "sdkVersion": "27.0.0"
+    "name": "RealTraces",
+    "sdkVersion": "27.0.0",
+    "version" : "1.0.0",
+    "ios": {
+     "bundleIdentifier": "com.raffix.realtraces"
+     },
+     "android": {
+       "package": "com.raffix.realtraces"
+     }
   }
 }
